@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@userfeeds/core@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@userfeeds/core/-/core-0.1.0.tgz#21f80641d22b5652d520245d136390dc6eafc0dc"
+"@userfeeds/core@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@userfeeds/core/-/core-0.1.1.tgz#584bdb2e110b4199ff4baa282615b5a4961f6454"
 
 abab@^1.0.3:
   version "1.0.4"

@@ -18,85 +18,39 @@ if (document.readyState === 'complete' && window.web3) {
 }
 
 class App extends Component {
-  state = {
-    network: 'ethereum',
-    appId: '',
-    value: '',
-    tokenAddress: '',
-    recipientAddress: '',
-    items: [],
-    loading: false,
-  };
+  constructor(props) {
+    super(props);
 
-  render() {
-    const { appId, recipientAddress, network, tokenAddress, value, loading, items } = this.state;
-    return (
-      <div className="App">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <div>
-            <input
-              type="text"
-              placeholder="Recipient Address"
-              value={recipientAddress}
-              onChange={(e) => this.setState({ recipientAddress: e.target.value }, this.fetch)}
-            />
-            <button onClick={this.copyAddress}>Copy from MM</button>
-          </div>
-          <select
-            type="text"
-            placeholder="network"
-            value={network}
-            onChange={(e) => this.setState({ network: e.target.value }, this.fetch)}
-          >
-            <option value="ethereum">Mainnet</option>
-            <option value="kovan">Kovan</option>
-            <option value="ropsten">Ropsten</option>
-            <option value="rinkeby">Rinkeby</option>
-          </select>
-          <div>
-            <input
-              type="text"
-              placeholder="ERC20 Token address"
-              value={tokenAddress}
-              onChange={(e) => this.setState({ tokenAddress: e.target.value }, this.fetch)}
-            />
-            {tokenAddress && (
-              <span style={{ color: 'red', fontSize: '0.8em', fontWeight: 'bold' }}>
-                This example works only with tokens with 18 decimals
-              </span>
-            )}
-          </div>
-        </div>
-        <div style={{ display: 'flex', borderTop: 'solid 1px black', margin: '10px' }}>
-          <div style={{ flex: 1 }}>
-            <p>
-              <b>Input</b>
-            </p>
-            <input
-              type="text"
-              placeholder="App identifier"
-              value={appId}
-              onChange={(e) => this.setState({ appId: e.target.value })}
-            />
-            <input
-              type="text"
-              placeholder="Amount"
-              value={value}
-              onChange={(e) => this.setState({ value: e.target.value })}
-            />
-            <button onClick={this.send}>Send</button>
-          </div>
-          <div style={{ flex: 1, borderLeft: 'solid 1px black' }}>
-            <p>
-              <b>API result</b>
-            </p>
-            <pre style={{ textAlign: 'left' }}>{items}</pre>
-            {loading && <span style={{ color: 'grey' }}>Loading...</span>}
-          </div>
-        </div>
-      </div>
-    );
+    const params = qs.parse(window.location.search.replace('?', ''));
+    this.state = {
+      network: 'ethereum',
+      appId: '',
+      value: '',
+      tokenAddress: '',
+      recipientAddress: '',
+      items: [],
+      loading: false,
+      ...params,
+    };
   }
+
+  componentDidMount() {
+    if (this.state.recipientAddress) {
+      this.fetch();
+    }
+  }
+
+  getClaim = () => ({
+    claim: {
+      target: this.state.appId,
+    },
+    credits: [
+      {
+        type: 'interface',
+        value: window.location.href,
+      },
+    ],
+  });
 
   send = async () => {
     if (!(await this.isOnCorrentNetwork())) {
@@ -145,26 +99,90 @@ class App extends Component {
       .catch((e) => console.error(e));
   };
 
-  getClaim = () => ({
-    claim: {
-      target: this.state.appId,
-    },
-    credits: [
-      {
-        type: 'interface',
-        value: window.location.href,
-      },
-    ],
-  });
-
-  copyAddress = async () => {
-    const [address] = await web3.eth.getAccounts();
-    if (address) {
-      this.setState({ recipientAddress: address }, this.fetch);
-    }
-  };
-
-  isOnCorrentNetwork = async () => this.state.network === (await core.utils.getCurrentNetworkName(web3));
+  render() {
+    const { appId, recipientAddress, network, tokenAddress, value, loading, items } = this.state;
+    return (
+      <div className="App">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div>
+            <input
+              type="text"
+              placeholder="Recipient Address"
+              value={recipientAddress}
+              onChange={(e) =>
+                this.setState({ recipientAddress: e.target.value }, () => {
+                  this.stateToQuery();
+                  this.fetch();
+                })
+              }
+            />
+            <button onClick={this.copyAddress}>Copy from MM</button>
+          </div>
+          <select
+            type="text"
+            placeholder="network"
+            value={network}
+            onChange={(e) =>
+              this.setState({ network: e.target.value }, () => {
+                this.stateToQuery();
+                this.fetch();
+              })
+            }
+          >
+            <option value="ethereum">Mainnet</option>
+            <option value="kovan">Kovan</option>
+            <option value="ropsten">Ropsten</option>
+            <option value="rinkeby">Rinkeby</option>
+          </select>
+          <div>
+            <input
+              type="text"
+              placeholder="ERC20 Token address"
+              value={tokenAddress}
+              onChange={(e) =>
+                this.setState({ tokenAddress: e.target.value }, () => {
+                  this.stateToQuery();
+                  this.fetch();
+                })
+              }
+            />
+            {tokenAddress && (
+              <span style={{ color: 'red', fontSize: '0.8em', fontWeight: 'bold' }}>
+                This example works only with tokens with 18 decimals
+              </span>
+            )}
+          </div>
+        </div>
+        <div style={{ display: 'flex', borderTop: 'solid 1px black', margin: '10px' }}>
+          <div style={{ flex: 1 }}>
+            <p>
+              <b>Input</b>
+            </p>
+            <input
+              type="text"
+              placeholder="App identifier"
+              value={appId}
+              onChange={(e) => this.setState({ appId: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Amount"
+              value={value}
+              onChange={(e) => this.setState({ value: e.target.value })}
+            />
+            <button onClick={this.send}>Send</button>
+          </div>
+          <div style={{ flex: 1, borderLeft: 'solid 1px black', overflow: 'scroll' }}>
+            <p>
+              <b>API result</b>
+            </p>
+            <pre style={{ textAlign: 'left' }}>{items}</pre>
+            {loading && <span style={{ color: 'grey' }}>Loading...</span>}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   fetch = async () => {
     this.setState({ loading: true });
@@ -176,6 +194,27 @@ class App extends Component {
     ).then((res) => res.json());
 
     this.setState({ loading: false, items: JSON.stringify(items, null, 2) });
+  };
+
+  copyAddress = async () => {
+    const [address] = await web3.eth.getAccounts();
+    if (address) {
+      this.setState({ recipientAddress: address }, () => {
+        this.stateToQuery();
+        this.fetch();
+      });
+    }
+  };
+
+  isOnCorrentNetwork = async () => this.state.network === (await core.utils.getCurrentNetworkName(web3));
+
+  stateToQuery = () => {
+    const { network, tokenAddress, recipientAddress } = this.state;
+    const query = qs.stringify(
+      { network: network || null, tokenAddress: tokenAddress || null, recipientAddress: recipientAddress || null },
+      { skipNulls: true },
+    );
+    window.history.replaceState(null, '', `?${query}`);
   };
 }
 
