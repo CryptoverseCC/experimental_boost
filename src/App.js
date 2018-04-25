@@ -103,6 +103,9 @@ class App extends Component {
     const { appId, recipientAddress, network, tokenAddress, value, loading, items } = this.state;
     return (
       <div className="App">
+        <a href="https://github.com/Userfeeds/experimental_boost" target="_blank">
+          <h4>Check the source code</h4>
+        </a>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <div>
             <input
